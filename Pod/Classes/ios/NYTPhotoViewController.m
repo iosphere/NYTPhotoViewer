@@ -28,6 +28,11 @@ NSString * const NYTPhotoViewControllerPhotoImageUpdatedNotification = @"NYTPhot
 
 #pragma mark - NSObject
 
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    NSAssert(NO, @"initWithCoder: not supported");
+    return [self initWithPhoto:nil loadingView:nil notificationCenter:nil];
+}
+
 - (void)dealloc {
     _scalingImageView.delegate = nil;
     

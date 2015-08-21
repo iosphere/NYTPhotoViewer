@@ -20,6 +20,11 @@
 
 #pragma mark - UIView
 
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    NSAssert(NO, @"initWithCoder: not supported");
+    return [self initWithFrame:CGRectZero];
+}
+
 - (instancetype)initWithFrame:(CGRect)frame {
     return [self initWithImage:nil frame:frame];
 }
