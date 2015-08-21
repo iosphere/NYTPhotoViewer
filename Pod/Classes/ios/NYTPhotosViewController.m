@@ -166,6 +166,7 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
         _notificationCenter = [[NSNotificationCenter alloc] init];
 
         _initialPhoto = initialPhoto;
+        _localizedHeaderFormat = NSLocalizedString(@"%lu of %lu", nil);
     }
     
     return self;
@@ -212,7 +213,7 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     
     NSString *overlayTitle;
     if (self.dataSource.numberOfPhotos > 1) {
-        overlayTitle = [NSString localizedStringWithFormat:NSLocalizedString(@"%lu of %lu", nil), (unsigned long)displayIndex, (unsigned long)self.dataSource.numberOfPhotos];
+        overlayTitle = [NSString localizedStringWithFormat:self.localizedHeaderFormat, (unsigned long)displayIndex, (unsigned long)self.dataSource.numberOfPhotos];
     }
     
     self.overlayView.title = overlayTitle;

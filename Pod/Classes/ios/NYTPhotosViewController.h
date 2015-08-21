@@ -66,6 +66,12 @@ extern NSString * const NYTPhotosViewControllerDidDismissNotification;
 @property (nonatomic, copy) NSArray *rightBarButtonItems;
 
 /**
+ *  The title displayed in the default overlay. Should have two placeholders
+ *  of type `%lu` to display the current page and the total number of pages.
+ */
+@property (nonatomic, copy) NSString *localizedHeaderFormat;
+
+/**
  *  The object that acts as the delegate of the `NYTPhotosViewController`.
  */
 @property (nonatomic, weak) id <NYTPhotosViewControllerDelegate> delegate;
