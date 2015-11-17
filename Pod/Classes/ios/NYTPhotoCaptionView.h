@@ -7,16 +7,12 @@
 //
 
 @import UIKit;
-
-/**
- *  The left and right margin around the content.
- */
-extern const CGFloat NYTPhotoCaptionViewHorizontalMargin;
+#import "NYTPhotoCaptionViewLayoutWidthHinting.h"
 
 /**
  *  A view used to display the caption for a photo.
  */
-@interface NYTPhotoCaptionView : UIView
+@interface NYTPhotoCaptionView : UIView <NYTPhotoCaptionViewLayoutWidthHinting>
 
 /**
  *  Designated initializer that takes all the caption attributed strings as arguments.
