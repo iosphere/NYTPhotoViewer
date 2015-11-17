@@ -1,13 +1,12 @@
 //
 //  NYTPhotoTransitionAnimator.m
-//  Pods
+//  NYTPhotoViewer
 //
 //  Created by Brian Capps on 2/17/15.
 //
 //
 
 #import "NYTPhotoTransitionAnimator.h"
-#import "NYTOperatingSystemCompatibilityUtility.h"
 
 static const CGFloat NYTPhotoTransitionAnimatorDurationWithZooming = 0.5;
 static const CGFloat NYTPhotoTransitionAnimatorDurationWithoutZooming = 0.3;
@@ -44,10 +43,11 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
 #pragma mark - NYTPhotoTransitionAnimator
 
 - (void)setupTransitionContainerHierarchyWithTransitionContext:(id <UIViewControllerContextTransitioning>)transitionContext {
-    UIView *fromView = [NYTOperatingSystemCompatibilityUtility fromViewForTransitionContext:transitionContext];
-    UIView *toView = [NYTOperatingSystemCompatibilityUtility toViewForTransitionContext:transitionContext];
-    
-    toView.frame = [NYTOperatingSystemCompatibilityUtility finalFrameForToViewControllerWithTransitionContext:transitionContext];
+    UIView *fromView = [transitionContext viewForKey:UITransitionContextFromViewKey];
+    UIView *toView = [transitionContext viewForKey:UITransitionContextToViewKey];
+
+    UIViewController *toViewController = [transitionContext viewControllerForKey:UITransitionContextToViewControllerKey];
+    toView.frame = [transitionContext finalFrameForViewController:toViewController];
     
     if (![toView isDescendantOfView:transitionContext.containerView]) {
         [transitionContext.containerView addSubview:toView];
@@ -73,8 +73,8 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
 #pragma mark - Fading
 
 - (void)performFadeAnimationWithTransitionContext:(id <UIViewControllerContextTransitioning>)transitionContext {
-    UIView *fromView = [NYTOperatingSystemCompatibilityUtility fromViewForTransitionContext:transitionContext];
-    UIView *toView = [NYTOperatingSystemCompatibilityUtility toViewForTransitionContext:transitionContext];
+    UIView *fromView = [transitionContext viewForKey:UITransitionContextFromViewKey];
+    UIView *toView = [transitionContext viewForKey:UITransitionContextToViewKey];
     
     UIView *viewToFade = toView;
     CGFloat beginningAlpha = 0.0;
@@ -122,7 +122,8 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     }
     
     CGAffineTransform finalEndingViewTransform = self.endingView.transform;
-        
+
+
     CGFloat endingViewInitialTransform = CGRectGetHeight(startingViewForAnimation.frame) / CGRectGetHeight(endingViewForAnimation.frame);
     CGPoint translatedStartingViewCenter = [[self class] centerPointForView:self.startingView
                                                   translatedToContainerView:containerView];

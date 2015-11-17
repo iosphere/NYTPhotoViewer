@@ -1,6 +1,6 @@
 //
 //  NYTScalingImageView.m
-//  Pods
+//  NYTPhotoViewer
 //
 //  Created by Harrison, Andrew on 7/23/13.
 //  Copyright (c) 2015 The New York Times Company. All rights reserved.
@@ -12,6 +12,8 @@
 
 @interface NYTScalingImageView ()
 
+- (instancetype)initWithCoder:(NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
+
 @property (nonatomic) UIImageView *imageView;
 
 @end
@@ -20,13 +22,18 @@
 
 #pragma mark - UIView
 
-- (instancetype)initWithCoder:(NSCoder *)aDecoder {
-    NSAssert(NO, @"initWithCoder: not supported");
-    return [self initWithFrame:CGRectZero];
-}
-
 - (instancetype)initWithFrame:(CGRect)frame {
     return [self initWithImage:nil frame:frame];
+}
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    self = [super initWithCoder:aDecoder];
+
+    if (self) {
+        [self commonInitWithImage:nil];
+    }
+
+    return self;
 }
 
 - (void)didAddSubview:(UIView *)subview {
@@ -36,8 +43,8 @@
 
 - (void)setFrame:(CGRect)frame {
     [super setFrame:frame];
-    [self centerScrollViewContents];
     [self updateZoomScale];
+    [self centerScrollViewContents];
 }
 
 #pragma mark - NYTScalingImageView
@@ -46,12 +53,16 @@
     self = [super initWithFrame:frame];
     
     if (self) {
-        [self setupInternalImageViewWithImage:image];
-        [self setupImageScrollView];
-        [self updateZoomScale];
+        [self commonInitWithImage:image];
     }
     
     return self;
+}
+
+- (void)commonInitWithImage:(UIImage *)image {
+    [self setupInternalImageViewWithImage:image];
+    [self setupImageScrollView];
+    [self updateZoomScale];
 }
 
 #pragma mark - Setup

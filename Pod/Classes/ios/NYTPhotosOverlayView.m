@@ -1,6 +1,6 @@
 //
 //  NYTPhotosOverlayView.m
-//  Pods
+//  NYTPhotoViewer
 //
 //  Created by Brian Capps on 2/17/15.
 //
@@ -63,8 +63,8 @@
     self.navigationBar.translucent = YES;
     self.navigationBar.shadowImage = [[UIImage alloc] init];
     [self.navigationBar setBackgroundImage:[[UIImage alloc] init] forBarMetrics:UIBarMetricsDefault];
-    
-    self.navigationItem = [[UINavigationItem alloc] init];
+
+    self.navigationItem = [[UINavigationItem alloc] initWithTitle:@""];
     self.navigationBar.items = @[self.navigationItem];
     
     [self addSubview:self.navigationBar];

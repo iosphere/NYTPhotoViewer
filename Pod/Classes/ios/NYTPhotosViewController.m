@@ -15,6 +15,7 @@
 #import "NYTPhoto.h"
 #import "NYTPhotosOverlayView.h"
 #import "NYTPhotoCaptionView.h"
+#import "NSBundle+NYTPhotoViewer.h"
 
 NSString * const NYTPhotosViewControllerDidNavigateToPhotoNotification = @"NYTPhotosViewControllerDidNavigateToPhotoNotification";
 NSString * const NYTPhotosViewControllerWillDismissNotification = @"NYTPhotosViewControllerWillDismissNotification";
@@ -25,6 +26,8 @@ static const CGFloat NYTPhotosViewControllerInterPhotoSpacing = 16.0;
 static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0, -3, 0};
 
 @interface NYTPhotosViewController () <UIPageViewControllerDataSource, UIPageViewControllerDelegate, NYTPhotoViewControllerDelegate>
+
+- (instancetype)initWithCoder:(NSCoder *)aDecoder NS_DESIGNATED_INITIALIZER;
 
 @property (nonatomic) id <NYTPhotosViewControllerDataSource> dataSource;
 @property (nonatomic) UIPageViewController *pageViewController;
@@ -46,18 +49,11 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
 @property (nonatomic, readonly) UIView *referenceViewForCurrentPhoto;
 @property (nonatomic, readonly) CGPoint boundsCenterPoint;
 
-@property (nonatomic) id <NYTPhoto> initialPhoto;
-
 @end
 
 @implementation NYTPhotosViewController
 
 #pragma mark - NSObject
-
-- (instancetype)initWithCoder:(NSCoder *)aDecoder {
-    NSAssert(NO, @"initWithCoder: not supported");
-    return [self initWithPhotos:nil];
-}
 
 - (void)dealloc {
     _pageViewController.dataSource = nil;
@@ -90,14 +86,25 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     return [self initWithPhotos:nil];
 }
 
+- (instancetype)initWithCoder:(NSCoder *)aDecoder {
+    self = [super initWithCoder:aDecoder];
+
+    if (self) {
+        [self commonInitWithPhotos:nil initialPhoto:nil];
+    }
+
+    return self;
+}
+
 - (void)viewDidLoad {
     [super viewDidLoad];
-
-    [self setupPageViewControllerWithInitialPhoto:self.initialPhoto];
 
     self.view.tintColor = [UIColor whiteColor];
     self.view.backgroundColor = [UIColor blackColor];
     self.pageViewController.view.backgroundColor = [UIColor clearColor];
+
+    [self.pageViewController.view addGestureRecognizer:self.panGestureRecognizer];
+    [self.pageViewController.view addGestureRecognizer:self.singleTapGestureRecognizer];
     
     [self addChildViewController:self.pageViewController];
     [self.view addSubview:self.pageViewController.view];
@@ -148,28 +155,32 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     self = [super initWithNibName:nil bundle:nil];
     
     if (self) {
-        _dataSource = [[NYTPhotosDataSource alloc] initWithPhotos:photos];
-        _panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPanWithGestureRecognizer:)];
-        _singleTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didSingleTapWithGestureRecognizer:)];
-        
-        _transitionController = [[NYTPhotoTransitionController alloc] init];
-        self.modalPresentationStyle = UIModalPresentationCustom;
-        self.transitioningDelegate = _transitionController;
-        self.modalPresentationCapturesStatusBarAppearance = YES;
-        
-        // iOS 7 has an issue with constraints that could evaluate to be negative, so we set the width to the margins' size.
-        _overlayView = [[NYTPhotosOverlayView alloc] initWithFrame:CGRectMake(0, 0, NYTPhotoCaptionViewHorizontalMargin * 2.0, 0)];
-        _overlayView.leftBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"NYTPhotoViewerCloseButtonX"] landscapeImagePhone:[UIImage imageNamed:@"NYTPhotoViewerCloseButtonXLandscape"] style:UIBarButtonItemStylePlain target:self action:@selector(doneButtonTapped:)];
-        _overlayView.leftBarButtonItem.imageInsets = NYTPhotosViewControllerCloseButtinImageInsets;
-        _overlayView.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonTapped:)];
-        
-        _notificationCenter = [[NSNotificationCenter alloc] init];
-
-        _initialPhoto = initialPhoto;
-        _localizedHeaderFormat = NSLocalizedString(@"%lu of %lu", nil);
+        [self commonInitWithPhotos:photos initialPhoto:initialPhoto];
     }
     
     return self;
+}
+
+- (void)commonInitWithPhotos:(NSArray *)photos initialPhoto:(id <NYTPhoto>)initialPhoto {
+    _dataSource = [[NYTPhotosDataSource alloc] initWithPhotos:photos];
+    _panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(didPanWithGestureRecognizer:)];
+    _singleTapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(didSingleTapWithGestureRecognizer:)];
+
+    _transitionController = [[NYTPhotoTransitionController alloc] init];
+    self.modalPresentationStyle = UIModalPresentationCustom;
+    self.transitioningDelegate = _transitionController;
+    self.modalPresentationCapturesStatusBarAppearance = YES;
+
+    // iOS 7 has an issue with constraints that could evaluate to be negative, so we set the width to the margins' size.
+    _overlayView = [[NYTPhotosOverlayView alloc] initWithFrame:CGRectMake(0, 0, NYTPhotoCaptionViewHorizontalMargin * 2.0, 0)];
+    _overlayView.leftBarButtonItem = [[UIBarButtonItem alloc] initWithImage:[UIImage imageNamed:@"NYTPhotoViewerCloseButtonX" inBundle:[NSBundle nyt_photoViewerResourceBundle] compatibleWithTraitCollection:nil] landscapeImagePhone:[UIImage imageNamed:@"NYTPhotoViewerCloseButtonXLandscape" inBundle:[NSBundle nyt_photoViewerResourceBundle] compatibleWithTraitCollection:nil] style:UIBarButtonItemStylePlain target:self action:@selector(doneButtonTapped:)];
+    _overlayView.leftBarButtonItem.imageInsets = NYTPhotosViewControllerCloseButtinImageInsets;
+    _overlayView.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonTapped:)];
+
+    _notificationCenter = [[NSNotificationCenter alloc] init];
+    _localizedHeaderFormat = NSLocalizedString(@"%lu of %lu", nil);
+
+    [self setupPageViewControllerWithInitialPhoto:initialPhoto];
 }
 
 - (void)setupPageViewControllerWithInitialPhoto:(id <NYTPhoto>)initialPhoto {
@@ -188,12 +199,11 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     }
     
     [self setCurrentlyDisplayedViewController:initialPhotoViewController animated:NO];
-    
-    [self.pageViewController.view addGestureRecognizer:self.panGestureRecognizer];
-    [self.pageViewController.view addGestureRecognizer:self.singleTapGestureRecognizer];
 }
 
 - (void)addOverlayView {
+    NSAssert(self.overlayView != nil, @"_overlayView must be set during initialization, to provide bar button items for this %@", NSStringFromClass([self class]));
+
     UIColor *textColor = self.view.tintColor ?: [UIColor whiteColor];
     self.overlayView.titleTextAttributes = @{NSForegroundColorAttributeName: textColor};
     
@@ -245,7 +255,8 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
     
     if (!clientDidHandle && self.currentlyDisplayedPhoto.image) {
         UIActivityViewController *activityViewController = [[UIActivityViewController alloc] initWithActivityItems:@[self.currentlyDisplayedPhoto.image] applicationActivities:nil];
-        activityViewController.completionWithItemsHandler = ^(NSString *activityType, BOOL completed, NSArray *returnedItems, NSError *activityError) {
+        activityViewController.popoverPresentationController.barButtonItem = sender;
+        activityViewController.completionWithItemsHandler = ^(NSString * __nullable activityType, BOOL completed, NSArray * __nullable returnedItems, NSError * __nullable activityError) {
             if (completed && [self.delegate respondsToSelector:@selector(photosViewController:actionCompletedWithActivityType:)]) {
                 [self.delegate photosViewController:self actionCompletedWithActivityType:activityType];
             }
@@ -261,16 +272,8 @@ static const UIEdgeInsets NYTPhotosViewControllerCloseButtinImageInsets = {3, 0,
         [self presentViewController:controller animated:animated completion:nil];
     }
     else {
-        if ([controller respondsToSelector:@selector(popoverPresentationController)]) {
-            controller.popoverPresentationController.barButtonItem = self.rightBarButtonItem;
-            [self presentViewController:controller animated:animated completion:nil];
-        }
-        else {
-            self.activityPopoverController = [[UIPopoverController alloc] initWithContentViewController:controller];
-            [self.activityPopoverController presentPopoverFromBarButtonItem:self.rightBarButtonItem
-                                               permittedArrowDirections:UIPopoverArrowDirectionAny
-                                                               animated:animated];
-        }
+        controller.popoverPresentationController.barButtonItem = self.rightBarButtonItem;
+        [self presentViewController:controller animated:animated completion:nil];
     }
 }
 
