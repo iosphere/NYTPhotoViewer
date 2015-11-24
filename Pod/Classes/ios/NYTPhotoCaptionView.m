@@ -51,7 +51,7 @@ static const CGFloat NYTPhotoCaptionViewVerticalMargin = 7.0;
 - (void)didMoveToSuperview {
     [super didMoveToSuperview];
 
-    NSLayoutConstraint *maxHeightConstraint = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationLessThanOrEqual toItem:self.superview attribute:NSLayoutAttributeHeight multiplier:0.3f constant:0.0f];
+    NSLayoutConstraint *maxHeightConstraint = [NSLayoutConstraint constraintWithItem:self attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationLessThanOrEqual toItem:self.superview attribute:NSLayoutAttributeHeight multiplier:0.2f constant:0.0f];
     [self.superview addConstraint:maxHeightConstraint];
 }
 
