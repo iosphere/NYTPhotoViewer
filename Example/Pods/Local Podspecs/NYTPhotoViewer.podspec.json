@@ -16,16 +16,35 @@
     "ios": "8.0"
   },
   "requires_arc": true,
-  "source_files": "Pod/Classes/**/*",
-  "ios": {
-    "resource_bundles": {
-      "NYTPhotoViewer": [
-        "Pod/Assets/ios/*.png"
+  "subspecs": [
+    {
+      "name": "Core",
+      "ios": {
+        "resource_bundles": {
+          "NYTPhotoViewer": [
+            "Pod/Assets/ios/*.png"
+          ]
+        }
+      },
+      "source_files": "Pod/Classes/**/*",
+      "frameworks": [
+        "UIKit",
+        "Foundation"
       ]
+    },
+    {
+      "name": "AnimatedGifSupport",
+      "xcconfig": {
+        "GCC_PREPROCESSOR_DEFINITIONS": "ANIMATED_GIF_SUPPORT=1"
+      },
+      "dependencies": {
+        "NYTPhotoViewer/Core": [
+
+        ],
+        "FLAnimatedImage": [
+          "~> 1.0.8"
+        ]
+      }
     }
-  },
-  "frameworks": [
-    "UIKit",
-    "Foundation"
   ]
 }

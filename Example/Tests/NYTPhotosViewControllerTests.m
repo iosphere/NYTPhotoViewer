@@ -9,10 +9,19 @@
 @import UIKit;
 @import XCTest;
 
+#import <OCMock/OCMock.h>
+
 #import <NYTPhotoViewer/NYTPhotosViewController.h>
 #import "NYTExamplePhoto.h"
 
 @interface NYTPhotosViewControllerTests : XCTestCase
+@end
+
+@interface NYTPhotosViewController (Testing)
+
+- (void)dismissViewControllerAnimated:(BOOL)animated userInitiated:(BOOL)isUserInitiated completion:(void (^)(void))completion;
+- (void)didPanWithGestureRecognizer:(UIPanGestureRecognizer *)panGestureRecognizer;
+- (void)doneButtonTapped:(id)sender;
 
 @end
 
@@ -42,6 +51,8 @@
 
 - (void)testPageViewControllerExistsAfterInitialization {
     NYTPhotosViewController *photosViewController = [[NYTPhotosViewController alloc] initWithPhotos:[self newTestPhotos]];
+    [photosViewController viewDidLoad];
+    
     XCTAssertNotNil(photosViewController.pageViewController);
 }
 
@@ -59,22 +70,25 @@
 - (void)testCurrentlyDisplayedPhotoIsFirstAfterConvenienceInitialization {
     NSArray *photos = [self newTestPhotos];
     NYTPhotosViewController *photosViewController = [[NYTPhotosViewController alloc] initWithPhotos:photos];
-    
+    [photosViewController viewDidLoad];
+
     XCTAssertEqualObjects(photos.firstObject, photosViewController.currentlyDisplayedPhoto);
 }
 
 - (void)testCurrentlyDisplayedPhotoIsAccurateAfterSettingInitialPhoto {
     NSArray *photos = [self newTestPhotos];
     NYTPhotosViewController *photosViewController = [[NYTPhotosViewController alloc] initWithPhotos:photos initialPhoto:photos.lastObject];
-    
+    [photosViewController viewDidLoad];
+
     XCTAssertEqualObjects(photos.lastObject, photosViewController.currentlyDisplayedPhoto);
 }
 
 - (void)testCurrentlyDisplayedPhotoIsAccurateAfterDisplayPhotoCall {
     NSArray *photos = [self newTestPhotos];
     NYTPhotosViewController *photosViewController = [[NYTPhotosViewController alloc] initWithPhotos:photos initialPhoto:photos.lastObject];
+    [photosViewController viewDidLoad];
     [photosViewController displayPhoto:photos.firstObject animated:NO];
-    
+
     XCTAssertEqualObjects(photos.firstObject, photosViewController.currentlyDisplayedPhoto);
 }
 
@@ -122,20 +136,45 @@
     XCTAssertNil(photosViewController.rightBarButtonItems);
 }
 
-- (void)testConvenienceInitializerAcceptsNil {
+- (void)testOneArgConvenienceInitializerAcceptsNil {
     XCTAssertNoThrow([[NYTPhotosViewController alloc] initWithPhotos:nil]);
 }
 
-- (void)testDesignatedInitializerAcceptsNilForPhotosParameter {
+- (void)testTwoArgConvenienceInitializerAcceptsNilForPhotosParameter {
     XCTAssertNoThrow([[NYTPhotosViewController alloc] initWithPhotos:nil initialPhoto:[[NYTExamplePhoto alloc] init]]);
 }
 
-- (void)testDesignatedInitializerAcceptsNilForInitialPhotoParameter {
+- (void)testTwoArgConvenienceInitializerAcceptsNilForInitialPhotoParameter {
     XCTAssertNoThrow([[NYTPhotosViewController alloc] initWithPhotos:[self newTestPhotos] initialPhoto:nil]);
 }
 
-- (void)testDesignatedInitializerAcceptsNilForBothParameters {
+- (void)testTwoArgConvenienceInitializerAcceptsNilForBothParameters {
     XCTAssertNoThrow([[NYTPhotosViewController alloc] initWithPhotos:nil initialPhoto:nil]);
+}
+
+- (void)testDesignatedInitializerAcceptsNilForPhotosParameter {
+    id delegateMock = OCMProtocolMock(@protocol(NYTPhotosViewControllerDelegate));
+    XCTAssertNoThrow([[NYTPhotosViewController alloc] initWithPhotos:nil initialPhoto:[NYTExamplePhoto new] delegate:delegateMock]);
+}
+
+- (void)testDesignatedInitializerAcceptsNilForInitialPhotoParameter {
+    id delegateMock = OCMProtocolMock(@protocol(NYTPhotosViewControllerDelegate));
+    XCTAssertNoThrow([[NYTPhotosViewController alloc] initWithPhotos:[self newTestPhotos] initialPhoto:nil delegate:delegateMock]);
+}
+
+- (void)testDesignatedInitializerAcceptsNilForDelegateParameter {
+    XCTAssertNoThrow([[NYTPhotosViewController alloc] initWithPhotos:[self newTestPhotos] initialPhoto:[NYTExamplePhoto new] delegate:nil]);
+}
+
+- (void)testDesignatedInitializerAcceptsNilForAllParameters {
+    XCTAssertNoThrow([[NYTPhotosViewController alloc] initWithPhotos:nil initialPhoto:nil delegate:nil]);
+}
+
+- (void)testDesignatedInitializerSetsDelegate {
+    id delegateMock = OCMProtocolMock(@protocol(NYTPhotosViewControllerDelegate));
+    NYTPhotosViewController *sut = [[NYTPhotosViewController alloc] initWithPhotos:[self newTestPhotos] initialPhoto:nil delegate:delegateMock];
+
+    XCTAssertEqual(sut.delegate, delegateMock);
 }
 
 - (void)testDisplayPhotoAcceptsNil {
@@ -146,6 +185,8 @@
 - (void)testDisplayPhotoDoesNothingWhenPassedPhotoOutsideDataSource {
     NSArray *photos = [self newTestPhotos];
     NYTPhotosViewController *photosViewController = [[NYTPhotosViewController alloc] initWithPhotos:photos initialPhoto:photos.firstObject];
+    [photosViewController viewDidLoad];
+    
     NYTExamplePhoto *invalidPhoto = [[NYTExamplePhoto alloc] init];
     
     [photosViewController displayPhoto:invalidPhoto animated:NO];
@@ -155,6 +196,8 @@
 - (void)testDisplayPhotoMovesToCorrectPhoto {
     NSArray *photos = [self newTestPhotos];
     NYTPhotosViewController *photosViewController = [[NYTPhotosViewController alloc] initWithPhotos:photos initialPhoto:photos.firstObject];
+    [photosViewController viewDidLoad];
+
     NYTExamplePhoto *photoToDisplay = photos[2];
     
     [photosViewController displayPhoto:photoToDisplay animated:NO];
@@ -201,6 +244,42 @@
     NYTPhotosViewController *photosViewController = [[NYTPhotosViewController alloc] initWithPhotos:photos];
 
     XCTAssertFalse(photosViewController.pageViewController.isViewLoaded);
+}
+
+- (void)testDoneButtonDismissalUserInitiatedFlagIsTrue {
+    NSArray *photos = [self newTestPhotos];
+    NYTPhotosViewController *photosViewController = [[NYTPhotosViewController alloc] initWithPhotos:photos];
+
+    id photosVCMock = OCMPartialMock(photosViewController);
+
+    [photosViewController doneButtonTapped:nil];
+
+    OCMVerify([photosVCMock dismissViewControllerAnimated:YES userInitiated:YES completion:[OCMArg any]]);
+}
+
+- (void)testGestureBasedDismissalUserInitiatedFlagIsTrue {
+    NSArray *photos = [self newTestPhotos];
+    NYTPhotosViewController *photosViewController = [[NYTPhotosViewController alloc] initWithPhotos:photos];
+
+    id photosVCMock = OCMPartialMock(photosViewController);
+
+    id gestureRecognizerMock = OCMClassMock([UIPanGestureRecognizer class]);
+    OCMStub([gestureRecognizerMock state]).andReturn(UIGestureRecognizerStateBegan);
+
+    [photosViewController didPanWithGestureRecognizer:gestureRecognizerMock];
+
+    OCMVerify([photosVCMock dismissViewControllerAnimated:YES userInitiated:YES completion:[OCMArg any]]);
+}
+
+- (void)testProgrammaticDismissalUserInitiatedFlagIsFalse {
+    NSArray *photos = [self newTestPhotos];
+    NYTPhotosViewController *photosViewController = [[NYTPhotosViewController alloc] initWithPhotos:photos];
+
+    id photosVCMock = OCMPartialMock(photosViewController);
+
+    [photosViewController dismissViewControllerAnimated:YES completion:nil];
+
+    OCMVerify([photosVCMock dismissViewControllerAnimated:YES userInitiated:NO completion:[OCMArg any]]);
 }
 
 #pragma mark - Helpers
