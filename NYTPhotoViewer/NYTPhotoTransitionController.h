@@ -8,12 +8,16 @@
 
 @import UIKit;
 
+@class NYTPhotoTransitionAnimator;
+
 NS_ASSUME_NONNULL_BEGIN
 
 /**
  *  An object that manages both animated transitions and interactive transitions, acting as the transitioning delegate and internally coordinating multiple objects that do the animating and interactivity work.
  */
 @interface NYTPhotoTransitionController : NSObject <UIViewControllerTransitioningDelegate>
+
+@property (nonatomic, readonly) NYTPhotoTransitionAnimator *animator;
 
 /**
  *  The view from which to start an image zooming transition. This view may be hidden or shown in the transition, but will never be removed or changed in its view hierarchy.
