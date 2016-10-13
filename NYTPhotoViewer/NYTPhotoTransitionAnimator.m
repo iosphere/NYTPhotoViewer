@@ -155,7 +155,7 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
                                              options:UIViewAnimationOptionAllowAnimatedContent | UIViewAnimationOptionBeginFromCurrentState
                                           animations:^{
                               startingViewForAnimation.alpha = 0.0;
-                          } completion:^(BOOL finished) {
+                          } completion:^(BOOL finishedSecondAnimation) {
                               [startingViewForAnimation removeFromSuperview];
                           }];
                      }];
