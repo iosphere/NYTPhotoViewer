@@ -120,7 +120,13 @@ static const CGFloat NYTPhotoTransitionAnimatorSpringDamping = 0.9;
     if (!endingViewForAnimation) {
         endingViewForAnimation = [[self class] newAnimationViewFromView:self.endingView];
     }
-    
+
+    if (!startingViewForAnimation || !endingViewForAnimation) {
+        NSAssert(startingViewForAnimation && endingViewForAnimation, @"When starting or ending views are nil, zooming should not be performed.");
+        [self completeTransitionWithTransitionContext:transitionContext];
+        return;
+    }
+
     CGAffineTransform finalEndingViewTransform = self.endingView.transform;
 
     CGFloat endingViewInitialTransform = CGRectGetHeight(startingViewForAnimation.frame) / CGRectGetHeight(endingViewForAnimation.frame);

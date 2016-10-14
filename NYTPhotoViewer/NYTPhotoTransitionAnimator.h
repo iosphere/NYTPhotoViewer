@@ -17,13 +17,17 @@ NS_ASSUME_NONNULL_BEGIN
 
 /**
  *  The view from which to start an image zooming transition. This view may be hidden or shown in the transition, but will never be removed or changed in its view hierarchy.
+ *
+ *  Setting the view to `nil` will disable the zoom animation.
  */
-@property (nonatomic) UIView *startingView;
+@property (nonatomic, nullable) UIView *startingView;
 
 /**
  *  The view from which to end an image zooming transition. This view may be hidden or shown in the transition, but will never be removed or changed in its view hierarchy.
+ *
+ *  Setting the view to `nil` will disable the zoom animation.
  */
-@property (nonatomic) UIView *endingView;
+@property (nonatomic, nullable) UIView *endingView;
 
 /**
  *  The view that is used for animating the starting view. If no view is set, the starting view is screenshotted and the relevant properties are copied to the new view.
